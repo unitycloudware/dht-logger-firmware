@@ -21,8 +21,8 @@ const unsigned long postingInterval = 15L * 1000L;  // delay between updates, in
 
 #define UCW_API_HOST          "192.168.0.12"
 #define UCW_API_PORT          9601
-#define UCW_API_DEVICE_TOKEN  "8i6u0f0edo57opjfjjciv1vlhkj0o5ep"
-#define UCW_API_DEVICE_ID     "d261ae00-da8c-4e63-ab1a-c653e047b1da"
+#define UCW_API_DEVICE_TOKEN  "8epc8t18ps0csecvro1nt8p98hvp7f3e"
+#define UCW_API_DEVICE_ID     "3f396ffa-a1e5-4326-9479-8fc7b4b013f3"
 #define UCW_API_DATA_STREAM   "ucw-dhtlogger"
 #define UCW_CLIENT_NAME       "UCW-DHT-Logger"
 
@@ -160,12 +160,14 @@ void collectData() {
 
 String readData() { 
 
-     double temperature = 22.00;
+  double temperature = 22.00;
   int humidity = 43;
+  double heatIndex = 50;
   
-  String data = "{\"temperature\": \"%temperature\", \"humidity\": \"%humidity\"}";
+  String data = "{\"temperature\": \"%temperature\", \"humidity\": \"%humidity\",\"heatIndex\": \"%heatIndex\"}";
   data.replace("%temperature", String(temperature));
   data.replace("%humidity", String(humidity));
+  data.replace("%heatIndex", String(heatIndex));
 //  
 //  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
 //  float h = dht.readHumidity();

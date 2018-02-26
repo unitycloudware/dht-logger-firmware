@@ -74,12 +74,11 @@ void loop() {
   // Compute heat index in Celsius (isFahreheit = false)
   float hic = dht.computeHeatIndex(t, h, false);
 
-  String data = "{\"humidity\": \"%humidity\", \"temperatureC\": \"%temperatureC\",\"temperatureF\": \"%temperatureF\",\"heat_indexC\": \"%heat_indexC\",\"heat_indexF\": \"%heat_indexF\"}";
+  //sending data for temperature and heat index in Celsius
+  String data = "{\"humidity\": \"%humidity\", \"temperature\": \"%temperature\",\"heatIndex\": \"%heatIndex\"}";
   data.replace("%humidity", String(h));
-  data.replace("%temperatureC", String(t));
-  data.replace("%temperatureF", String(f));
-  data.replace("%heat_indexC", String(hic));
-  data.replace("%heat_indexF", String(hif));
+  data.replace("%temperature", String(t));
+  data.replace("%heatIndex", String(hic));
   
   ucw_api.sendData(DEVICE_ID, DATA_STREAM, data);
   
