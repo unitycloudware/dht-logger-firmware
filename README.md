@@ -27,7 +27,7 @@ Example: #define UCW_API_HOST	"192.168.0.104"
 #### Step 2
 
 You need a device token for communication with the UCW portal over REST API. The token can be found in section 
-Access Tokens of the UCW project.
+Access Tokens of the UCW project. The scope of the device token has to be READ_WRITE.
 
 Example: #define UCW_API_DEVICE_TOKEN	"jnfb7600j0tqppi6k4179dm0iaop5u93"
 
