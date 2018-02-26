@@ -1,10 +1,11 @@
 /* 
-  Data Measurement Firmware
-  Copyright 2017 Unity{Cloud}Ware - UCW Industries Ltd. All rights reserved.
+  DHT Logger Firmware - Data logger for DHTx sensors
+  Copyright 2018 Unity{Cloud}Ware - UCW Industries Ltd. All rights reserved.
  */
 
 #include <SPI.h>
 #include <WiFi101.h>
+#include <DHT.h>
 
 char ssid[] = "your_ssid";     // your network SSID (name)
 char pass[] = "your_password"; // your network password (use for WPA, or use as key for WEP)
@@ -15,17 +16,24 @@ int status = WL_IDLE_STATUS;
 unsigned long lastConnectionTime = 0;               // last time you connected to the server, in milliseconds
 const unsigned long postingInterval = 15L * 1000L;  // delay between updates, in milliseconds
 
-#define UCW_API_HOST          "cloud.dev.unitycloudware.com"
-#define UCW_API_PORT          80
-#define UCW_API_DEVICE_TOKEN  "ha1mkr4gv5vrbrvnrb5gna9n6o45us2g"
-#define UCW_API_DEVICE_ID     "9fe67d17-4e9a-4ca4-8498-08b65f96f8a4"
+#define DHTPIN  9
+#define DHTTYPE DHT22
+
+#define UCW_API_HOST          "your_ucw_host"
+#define UCW_API_PORT          9601
+#define UCW_API_DEVICE_TOKEN  "your_device_token"
+#define UCW_API_DEVICE_ID     "your_device_id"
+#define UCW_API_DATA_STREAM   "ucw-dhtlogger"
+#define UCW_CLIENT_NAME       "UCW-DHT-Logger"
 
 IPAddress server;
 WiFiClient client;
+DHT dht(DHTPIN, DHTTYPE);
 
 void setup() {
   setupSerialPorts();
   setupWifi();
+  dht.begin();
 }
 
 void loop() {
@@ -150,14 +158,36 @@ void collectData() {
   }
 }
 
-String readData() {
-  double temperature = 22.00;
-  int humidity = 43;
+String readData() {  
+  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
+  float h = dht.readHumidity();
   
-  String data = "{\"temperature\": \"%temperature\", \"humidity\": \"%humidity\"}";
-  data.replace("%temperature", String(temperature));
-  data.replace("%humidity", String(humidity));
+  // Read temperature as Celsius (the default)
+  float t = dht.readTemperature();
   
+  // Read temperature as Fahrenheit (isFahrenheit = true)
+  float f = dht.readTemperature(true);
+
+  // Check if any reads failed and exit early (to try again).
+  if (isnan(h) || isnan(t) || isnan(f)) {
+    Serial.println("Failed to read from DHT sensor!");
+    return "";
+  }
+
+  // Compute heat index in Fahrenheit (the default)
+  float hif = dht.computeHeatIndex(f, h);
+  
+  // Compute heat index in Celsius (isFahreheit = false)
+  float hic = dht.computeHeatIndex(t, h, false);
+
+  String data = "{\"temperature\": %temperatureC, \"humidity\": %humidity}";
+  //String data = "{\"humidity\": %humidity, \"temperature\": %temperatureC, \"temperatureF\": %temperatureF, \"heatIndexC\": %heatIndexC, \"heatIndexF\": %heatIndexF}";
+  data.replace("%humidity", String(h));
+  data.replace("%temperatureC", String(t));
+  data.replace("%temperatureF", String(f));
+  data.replace("%heat_indexC", String(hic));
+  data.replace("%heat_indexF", String(hif));
+
   return data;
 }
 
@@ -175,7 +205,8 @@ void sendData(String payload) {
     Serial.print("Payload length: ");
     Serial.println(payload.length());
 
-    String apiUri = "POST /api/ucw/v1/data-streams/data-monitoring/messages/%deviceId HTTP/1.1";
+    String apiUri = "POST /api/ucw/v1/data-streams/%dataStream/messages/%deviceId HTTP/1.1";
+    apiUri.replace("%dataStream", UCW_API_DATA_STREAM);
     apiUri.replace("%deviceId", UCW_API_DEVICE_ID);
 
     Serial.print("API URI: ");
@@ -184,7 +215,8 @@ void sendData(String payload) {
     client.println(apiUri);
     client.print("Host: ");
     client.println(UCW_API_HOST);
-    client.println("User-Agent: Adafruit-Feather-M0-Wifi");
+    client.print("User-Agent: ");
+    client.println(UCW_CLIENT_NAME);
     client.println("Connection: close");
     client.println("Content-Type: application/json");
     client.print("Content-Length: ");
