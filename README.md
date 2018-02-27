@@ -20,7 +20,7 @@ Before you start to use the firmware you need to do following steps:
 
 Change property UCW_API_HOST for your UCW host. For example when you are running the plugin dht-logger for UCW Portal 
 on your machine, than use the IP address of your machine. In case you are running a firewall, please make sure port 
-9600 is allowed on firewall.
+9601 is allowed on firewall.
 
 Example: #define UCW_API_HOST	"192.168.0.104"
 
