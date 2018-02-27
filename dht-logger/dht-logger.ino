@@ -7,8 +7,8 @@
 #include <WiFi101.h>
 #include <DHT.h>
 
-char ssid[] = "SHAW-65F4D0";     // your network SSID (name)
-char pass[] = "251169048389"; // your network password (use for WPA, or use as key for WEP)
+char ssid[] = "your_ssid";     // your network SSID (name)
+char pass[] = "your_password"; // your network password (use for WPA, or use as key for WEP)
 int keyIndex = 0;              // your network key Index number (needed only for WEP)
 byte mac[6];
 int status = WL_IDLE_STATUS;
@@ -19,10 +19,10 @@ const unsigned long postingInterval = 15L * 1000L;  // delay between updates, in
 #define DHTPIN  9
 #define DHTTYPE DHT22
 
-#define UCW_API_HOST          "192.168.0.12"
+#define UCW_API_HOST          "your_ucw_host"
 #define UCW_API_PORT          9601
-#define UCW_API_DEVICE_TOKEN  "8epc8t18ps0csecvro1nt8p98hvp7f3e"
-#define UCW_API_DEVICE_ID     "3f396ffa-a1e5-4326-9479-8fc7b4b013f3"
+#define UCW_API_DEVICE_TOKEN  "your_device_token"
+#define UCW_API_DEVICE_ID     "your_device_id"
 #define UCW_API_DATA_STREAM   "ucw-dhtlogger"
 #define UCW_CLIENT_NAME       "UCW-DHT-Logger"
 
@@ -158,46 +158,36 @@ void collectData() {
   }
 }
 
-String readData() { 
+String readData() {
+  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
+  float h = dht.readHumidity();
 
-  double temperature = 22.00;
-  int humidity = 43;
-  double heatIndex = 50;
-  
-  String data = "{\"temperature\": \"%temperature\", \"humidity\": \"%humidity\",\"heatIndex\": \"%heatIndex\"}";
-  data.replace("%temperature", String(temperature));
-  data.replace("%humidity", String(humidity));
-  data.replace("%heatIndex", String(heatIndex));
-//  
-//  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
-//  float h = dht.readHumidity();
-//  
-//  // Read temperature as Celsius (the default)
-//  float t = dht.readTemperature();
-//  
-//  // Read temperature as Fahrenheit (isFahrenheit = true)
-//  float f = dht.readTemperature(true);
-//
-//  // Check if any reads failed and exit early (to try again).
-//  if (isnan(h) || isnan(t) || isnan(f)) {
-//    Serial.println("Failed to read from DHT sensor!");
-//    return "";
-//  }
-//
-//  // Compute heat index in Fahrenheit (the default)
-//  float hif = dht.computeHeatIndex(f, h);
-//  
-//  // Compute heat index in Celsius (isFahreheit = false)
-//  float hic = dht.computeHeatIndex(t, h, false);
-//
-//  String data = "{\"temperature\": %temperatureC, \"humidity\": %humidity}";
-//  //String data = "{\"humidity\": %humidity, \"temperature\": %temperatureC, \"temperatureF\": %temperatureF, \"heatIndexC\": %heatIndexC, \"heatIndexF\": %heatIndexF}";
-//  data.replace("%humidity", String(h));
-//  data.replace("%temperatureC", String(t));
-//  data.replace("%temperatureF", String(f));
-//  data.replace("%heat_indexC", String(hic));
-//  data.replace("%heat_indexF", String(hif));
-//
+  // Read temperature as Celsius (the default)
+  float t = dht.readTemperature();
+
+  // Read temperature as Fahrenheit (isFahrenheit = true)
+  float f = dht.readTemperature(true);
+
+  // Check if any reads failed and exit early (to try again).
+  if (isnan(h) || isnan(t) || isnan(f)) {
+    Serial.println("Failed to read from DHT sensor!");
+    return "";
+  }
+
+  // Compute heat index in Fahrenheit (the default)
+  float hif = dht.computeHeatIndex(f, h);
+
+  // Compute heat index in Celsius (isFahreheit = false)
+  float hic = dht.computeHeatIndex(t, h, false);
+
+  String data = "{\"temperature\": %temperatureC, \"humidity\": %humidity, \"heatIndex\": %heatIndexC}";
+  //String data = "{\"humidity\": %humidity, \"temperature\": %temperatureC, \"temperatureF\": %temperatureF, \"heatIndexC\": %heatIndexC, \"heatIndexF\": %heatIndexF}";
+  data.replace("%humidity", String(h));
+  data.replace("%temperatureC", String(t));
+  data.replace("%temperatureF", String(f));
+  data.replace("%heatIndexC", String(hic));
+  data.replace("%heatIndexF", String(hif));
+
   return data;
 }
 
