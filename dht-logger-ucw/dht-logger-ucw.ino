@@ -1,8 +1,7 @@
-/* 
+/*
   DHT Logger Firmware - Data logger for DHTx sensors
   Copyright 2018 Unity{Cloud}Ware - UCW Industries Ltd. All rights reserved.
  */
-
 
 #include "config.h"
 
@@ -17,17 +16,14 @@
 #define DHTPIN 6
 #define DHTTYPE DHT22
 
-//comment appropriately
-   UCW_API_REST ucw_api =  ucw.api();         //REST API
-// UCW_API_MQTT ucw_api =  ucw.api_m();      //MQTT
+UCW_API_REST ucw_api =  ucw.api();
 
-#define DEVICE_ID   "your_device_id" // use device id from device section in UCW project
+#define DEVICE_ID   "your_device_id"
 #define DATA_STREAM "ucw-dhtlogger"
 
 DHT dht(DHTPIN, DHTTYPE);
 
-void setup() {
-  
+void setup() {  
   // Start the serial connection
   Serial.begin(9600);
 
@@ -55,15 +51,16 @@ void setup() {
 void loop() {
   ucw.sys();
 
-  // read data()
-  //Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
+  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
   float h = dht.readHumidity();
+  
   // Read temperature as Celsius (the default)
   float t = dht.readTemperature();
+  
   // Read temperature as Fahrenheit (isFahrenheit = true)
   float f = dht.readTemperature(true);
 
-   //Check if any reads failed and exit early (to try again).
+  // Check if any reads failed and exit early (to try again).
   if (isnan(h) || isnan(t) || isnan(f)) {
     Serial.println("Failed to read from DHT sensor!");
     return;
@@ -71,18 +68,17 @@ void loop() {
 
   // Compute heat index in Fahrenheit (the default)
   float hif = dht.computeHeatIndex(f, h);
+  
   // Compute heat index in Celsius (isFahreheit = false)
   float hic = dht.computeHeatIndex(t, h, false);
 
-  //sending data for temperature and heat index in Celsius
-  String data = "{\"humidity\": \"%humidity\", \"temperature\": \"%temperature\",\"heatIndex\": \"%heatIndex\"}";
+  String data = "{\"humidity\": %humidity, \"temperature\": %temperature, \"heatIndex\": %heatIndex}";
   data.replace("%humidity", String(h));
   data.replace("%temperature", String(t));
   data.replace("%heatIndex", String(hic));
   
+  // Sending data for temperature, humidity and heat index in Celsius
   ucw_api.sendData(DEVICE_ID, DATA_STREAM, data);
   
   delay(1000);
- 
 }
-
